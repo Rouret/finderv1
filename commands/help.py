@@ -1,2 +1,0 @@
-def exec():
-    print("yes")

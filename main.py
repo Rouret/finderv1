@@ -2,12 +2,22 @@
 import sys
 import signal
 import argparse
-from zoneinfo import available_timezones
-import pyreadline
 from src.Finder import Finder
 from src import fprint as fp
-import collections
+import collections 
+import collections.abc
 collections.Callable = collections.abc.Callable
+
+
+is_windows = False
+
+try:
+    import gnureadline  
+except: 
+    is_windows = True
+    import pyreadline
+
+print("IS WINDOWS: ", is_windows)
 
 
 def _quit():
@@ -31,7 +41,6 @@ def completer(text, state):
         return options[state]
     else:
         return None
-
 #Parser config
 parser = argparse.ArgumentParser(description='We will find u O_o')
 args = parser.parse_args()
@@ -39,8 +48,12 @@ args = parser.parse_args()
 fp.fclear()
 while(True):
 	signal.signal(signal.SIGINT, _quit)
-	pyreadline.Readline().parse_and_bind("tab: complete")
-	pyreadline.Readline().set_completer(completer)
+	if is_windows:
+		pyreadline.Readline().parse_and_bind("tab: complete")
+		pyreadline.Readline().set_completer(completer)
+	else:
+		gnureadline.parse_and_bind("tab: complete")
+		gnureadline.set_completer(completer)
 
 	cmd = input(": ")
 	_cmd = commands.get(cmd)

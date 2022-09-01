@@ -3,5 +3,6 @@ glitch-this==1.0.2
 numpy==1.23.1
 Pillow==9.2.0
 pixelsort==1.0.1
-pyreadline==2.1
+gnureadline>=8.0.0; platform_system != "Windows"
+pyreadline==2.1; platform_system == "Windows"
 termcolor==1.1.0
