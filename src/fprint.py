@@ -1,5 +1,5 @@
-#osintgram
-
+from src import logo
+import os
 import sys
 
 BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
@@ -15,13 +15,16 @@ def has_colours(stream):
     except:
         return False
 
-
-has_colours = has_colours(sys.stdout)
-
-
-def printout(text, colour=WHITE):
+def fprint(text, color=WHITE):
     if has_colours:
-        seq = "\x1b[1;%dm" % (30 + colour) + text + "\x1b[0m"
+        seq = "\x1b[1;%dm" % (30 + color) + text + "\x1b[0m"
         sys.stdout.write(seq)
     else:
         sys.stdout.write(text)
+
+def fclear():
+    #exec cls for window and clear for linux
+    os.system('cls' if os.name == 'nt' else 'clear')
+    return fprint(logo.ascii_logo,WHITE)
+    
+
