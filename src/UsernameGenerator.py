@@ -18,15 +18,13 @@ class UsernameGenerator:
         return result
 
     def __anti_vowel(self, name):
-        return re.sub(r'[AEIOU]', '', name, flags=re.IGNORECASE)
+        return re.sub(r'[AEIOUY]', '', name, flags=re.IGNORECASE)
 
     def __generate_username(self):
         self.possibilities = self.__get_basic_possibilities(self.firstname,self.lastname)
-        # self.possibilities += self.__get_basic_possibilities(self.firstname,self.__anti_vowel(self.lastname))
-        # self.possibilities += self.__get_basic_possibilities(self.__anti_vowel(self.firstname),self.lastname)
-        # self.possibilities += self.__get_basic_possibilities(self.__anti_vowel(self.firstname),self.__anti_vowel(self.lastname))
-        # self.possibilities += self.__get_basic_possibilities(self.firstname,self.lastname[0])
-        # self.possibilities += self.__get_basic_possibilities(self.firstname[0],self.lastname)
-        # self.possibilities += self.__get_basic_possibilities(self.firstname,self.lastname[0:3])
-        # self.possibilities += self.__get_basic_possibilities(self.firstname[0:3],self.lastname[0:3])
-        # self.possibilities += self.__get_basic_possibilities(self.firstname[0:3],self.lastname)
+        self.possibilities += self.__get_basic_possibilities(self.firstname,self.__anti_vowel(self.lastname))
+        self.possibilities += self.__get_basic_possibilities(self.__anti_vowel(self.firstname),self.lastname)
+        self.possibilities += self.__get_basic_possibilities(self.firstname,self.lastname[0])
+        self.possibilities += self.__get_basic_possibilities(self.firstname[0],self.lastname)
+        self.possibilities += self.__get_basic_possibilities(self.firstname,self.lastname[0:3])
+        self.possibilities += self.__get_basic_possibilities(self.firstname[0:3],self.lastname)

@@ -29,7 +29,7 @@ def fprint(*args):
         sys.stdout.write(text)
 
 
-def fclear():
+def fclear(verion):
     os.system('cls' if os.name == 'nt' else 'clear')
     fprint((logo.ascii_logo, WHITE))
-    fprint(("Version: ", GREEN), ("V0.0.1", YELLOW),(" We will find u O_o", WHITE))
+    fprint(("Version: ", GREEN), (verion, YELLOW),(" We will find u O_o", WHITE))
