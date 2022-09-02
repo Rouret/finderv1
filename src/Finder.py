@@ -14,6 +14,7 @@ class Finder:
             "reload_dependencies": self.start,
             "username": self.nexfil,
             "url": self.finalrecon,
+            "update": self.update,
             "clear" : fp.fclear
         }
         self.vendor_folder = "vendor"
@@ -35,9 +36,17 @@ class Finder:
         #END
         fp.fprint("\nFinder is ready to find u O_o\n", fp.YELLOW)
 
+    def update(self):
+        fp.fprint("Updating ...", fp.YELLOW)
+        subprocess.run(["git", "pull"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        self.__pip_install("requirements.txt")
+        fp.fprint("Update DONE:'"+self.python_exe +" " + os.path.abspath(__file__), fp.GREEN)
+        self._quit()
+    
+
     def __install_by_pip(self, lib_name, github_url):
         fp.fprint(lib_name + " " + github_url, fp.MAGENTA)
-        self.__clone(lib_name, github_url+".git", self.vendor_folder+"/"+lib_name)
+        self.__clone_or_update(lib_name, github_url+".git", self.vendor_folder+"/"+lib_name)
         fp.fprint("Installing dependencies of "+lib_name+" ...", fp.MAGENTA)
         self.__pip_install(self.vendor_folder+"/"+lib_name+"/requirements.txt")
         fp.fprint(lib_name+" DONE", fp.GREEN)
@@ -86,9 +95,10 @@ class Finder:
     def __setPrompt(self,routes = ""):
         self.prompt = self.name + "/" + "/".join(routes) + ">>> "
 
-    def __clone(self,lib_name, url, folder):
+    def __clone_or_update(self,lib_name, url, folder):
         if(os.path.exists(folder)):
-            fp.fprint(lib_name+" is already cloned", fp.GREEN)
+            subprocess.run(["git", "pull"],cwd=folder,stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT) 
+            fp.fprint(lib_name+" is already cloned so Finder update it", fp.GREEN)
         else:
             subprocess.run(["git", "clone", url, folder],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
 
