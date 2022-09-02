@@ -55,7 +55,13 @@ class Finder:
         self.__display_options(routes,options)
         result = self.__get_multiple_options(routes,options)
         if not result: return
-        print("result: ", result)
+        username = result["username"]
+        routes.append(username)
+        self.__setPrompt(routes)
+        nexfill_folder = self.vendor_folder+"/nexfil"
+        subprocess.run([self.python_exe, "nexfil.py" , "-u", username], cwd=os.path.abspath(nexfill_folder))
+        fp.fprint("wb_username DONE for "+username + ", thanks to thewhiteh4t/nexfil", fp.GREEN)
+        fp.fprint("Github: https://github.com/thewhiteh4t/nexfil\n", fp.GREEN)
         self.__setPrompt()
         
     def __display_options(self,routes,options):
@@ -67,7 +73,6 @@ class Finder:
 
     def __get_multiple_options(self,routes,options):
         result = {}
-
         for option in options:
             temp_routes = routes
             temp_routes.append(option)
@@ -82,15 +87,7 @@ class Finder:
                 if len(temp_input) == 0:
                     fp.fprint("Please provide a "+ option +" value !", fp.RED)
             result[option] = temp_input
-        username = result["username"]
-        routes.append(username)
-        self.__setPrompt(routes)
-        nexfill_folder = self.vendor_folder+"/nexfil"
-        print(self.python_exe)
-        subprocess.run([self.python_exe, "nexfil.py" , "-u", username ,"-f",self.output_folder+"/"+username+".txt"], cwd=os.path.abspath(nexfill_folder))
-        fp.fprint("wb_username DONE for "+username + ", thanks to thewhiteh4t/nexfil", fp.GREEN)
-        fp.fprint("Github: https://github.com/thewhiteh4t/nexfil\n", fp.GREEN)
-        self.__setPrompt()
+        return result
     
 
     def test(self):
