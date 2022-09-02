@@ -12,7 +12,8 @@ requests.packages.urllib3.disable_warnings()
 
 
 class Finder:
-    def __init__(self) -> None:
+    def __init__(self, config) -> None:
+        self.config = config
         self.name = "Finder"
         self.prompt_sign = "> "
         self.prompt = ""
@@ -78,7 +79,7 @@ class Finder:
         self._quit()
 
     def nexfil(self):
-        fp.fclear()
+        fp.fclear(self.config["version"])
         fp.fprint((self.commands["username"]["description"], fp.YELLOW))
         options = ["username"]
         lib_name = "nexfil"
@@ -96,7 +97,7 @@ class Finder:
         if os.name == "nt":
             fp.fprint(("FinalRecon is not supported on Windows", fp.RED))
             return
-        fp.fclear()
+        fp.fclear(self.config["version"])
         fp.fprint((self.commands["url"]["description"], fp.YELLOW))
         options = ["url"]
         lib_name = "FinalRecon"
@@ -111,7 +112,10 @@ class Finder:
         self.__set_prompt()
 
     def fsearch(self):
-        fp.fclear()
+        if len(self.config["INSTAGRAM_SESSION_ID"]) == 0:
+            fp.fprint(("Instagram session id is not set in config.json", fp.RED))
+            return
+        fp.fclear(self.config["version"])
         fp.fprint((self.commands["fsearch"]["description"], fp.YELLOW))
         options = ["firstname", "lastname"]
         lib_name = "fsearch"
@@ -127,7 +131,8 @@ class Finder:
             self.__set_prompt(lib_name, f'Enter {"/".join(expected)}')
             temp_input = input(self.prompt)
         possibilities = UsernameGenerator(firstname, lastname).possibilities
-        fp.fprint(("Generated " + str(len(possibilities)) + " usernames", fp.GREEN))
+        fp.fprint(("[+] Generated " + str(len(possibilities)) + " usernames", fp.GREEN))
+
         if temp_input == "y":
             filename = firstname + "_" + lastname + "_" + str(datetime.timestamp(datetime.now()))
             self.__export_list_to_output(possibilities, filename, lambda x: x)
@@ -135,25 +140,36 @@ class Finder:
         found = []
         headers = {
             'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:88.0) Gecko/20100101 Firefox/88.0',
-            'sessionid': '1983453404%3Ahg8m1eRoPOrcnQ%3A3%3AAYfqpkt8ArvzWEHejfout5a2PLZpqccZxDUPxsPdyw'
+            'Accept': '*/*'
         }
 
+        cookies = {
+            'sessionid': self.config["INSTAGRAM_SESSION_ID"],
+        }
+        fp.fprint(("[+] Let's find ig accounts now ", fp.GREEN), ("O", fp.RED), ("_", fp.BLACK), ("O", fp.RED))
         for username in possibilities:
             try:
                 url = f'https://www.instagram.com/{username}/?__a=1&__d=dis'
-                response = requests.get(url, headers=headers, timeout=10)
+                response = requests.get(url, headers=headers, cookies=cookies, timeout=10)
                 if response.status_code == 200:
-                    print(response.text)
-                    fp.fprint(("[+]: " + username, fp.GREEN))
+                    is_private = response.json()["graphql"]["user"]["is_private"]
+                    if is_private:
+                        fp.fprint(("[+]: ", fp.GREEN), (username, fp.YELLOW), (" PRIVATE", fp.RED))
+                    else:
+                        fp.fprint(("[+]: ", fp.GREEN), (username, fp.YELLOW), (" PUBLIC AYA", fp.GREEN))
                     found.append({
                         "username": username,
-                        "url": url,
+                        "is_private": is_private,
+                        "url": f'https://www.instagram.com/{username}/',
                     })
             except Exception:
                 pass
 
         filename = "result_" + firstname + "_" + lastname + "_" + str(datetime.timestamp(datetime.now()))
-        self.__export_list_to_output(found, filename, lambda x: x["username"] + " : " + x["url"])
+        self.__export_list_to_output(found, filename, lambda
+            x: f'[{"PRIVATE" if x["is_private"] else "PUBLIC"}] {x["username"]}: {x["url"]}')
+        fp.fprint(("\n[+] Found " + str(len(found)) + " accounts ", fp.GREEN), ("O", fp.RED), ("_", fp.BLACK),
+                  ("O", fp.RED))
         self.__set_prompt()
 
     def help(self):
@@ -199,7 +215,7 @@ class Finder:
             while len(temp_input) == 0:
                 temp_input = input(self.prompt)
                 if temp_input == "q":
-                    fp.fprint(("Cancel wb_username", fp.RED))
+                    fp.fprint((f"Cancel {lib_name}", fp.RED))
                     self.__set_prompt()
                     return None
                 if len(temp_input) == 0:
