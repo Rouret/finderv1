@@ -7,3 +7,11 @@ We'll find u O_o
 ```bash
 pip install -r requirements.txt
 ```
+
+
+## Linux
+
+Install before:
+
+- libpython3-dev
+- python3-dev
