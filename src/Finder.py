@@ -16,6 +16,7 @@ class Finder:
             "clear" : fp.fclear
         }
         self.vendor_folder = "vendor"
+        self.output_folder = "output"
 
         self.python_exe = sys.executable
         
@@ -24,6 +25,7 @@ class Finder:
 
 
     def start(self):
+        self.test()
         fp.fprint("Finder starter is starting ...", fp.YELLOW)
         #nexfil
         fp.fprint("nexfil https://github.com/thewhiteh4t/nexfil", fp.MAGENTA)
@@ -58,7 +60,7 @@ class Finder:
         
     def __display_options(self,routes,options):
         if len(routes) > 0:
-            fp.fprint("\nOptions for:" + routes[-1], fp.YELLOW)
+            fp.fprint("\nOptions for " + routes[-1] + " :", fp.YELLOW)
         else: 
             fp.fprint("\nOptions:", fp.YELLOW)
         fp.fprint(",".join(options)+"\n", fp.YELLOW)
@@ -83,9 +85,19 @@ class Finder:
         username = result["username"]
         routes.append(username)
         self.__setPrompt(routes)
-        nexfill_script = self.vendor_folder+"/nexfil/nexfil.py"
-        subprocess.run([self.python_exe, nexfill_script , "-u", username])
+        nexfill_folder = self.vendor_folder+"/nexfil"
+        print(self.python_exe)
+        subprocess.run([self.python_exe, "nexfil.py" , "-u", username ,"-f",self.output_folder+"/"+username+".txt"], cwd=os.path.abspath(nexfill_folder))
+        fp.fprint("wb_username DONE for "+username + ", thanks to thewhiteh4t/nexfil", fp.GREEN)
+        fp.fprint("Github: https://github.com/thewhiteh4t/nexfil\n", fp.GREEN)
+        self.__setPrompt()
     
+
+    def test(self):
+        print(self.python_exe)
+        return
+        
+
     def help(self):
         for key in self.commands:
             fp.fprint( "- " + key, fp.GREEN)
