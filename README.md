@@ -16,12 +16,19 @@
 - Linux
 - Termux (coming soon)
 
-### Require
+### Dependencies
 
+---
+- [nexfil](https://github.com/thewhiteh4t/nexfil)
+- [FinalRecon](https://github.com/thewhiteh4t/FinalRecon)
+
+## Require
+
+---
 - python3
 - a target lol
 
-## Linux
+### Linux
 
 Install before:
 
@@ -29,12 +36,12 @@ Install before:
 - python3-dev
 - tor
 
-## Windows
+### Windows
 
 Meta OS so nothing
 
+---
 ## Aya
-
 ```bash
 git clone https://github.com/Rouret/finderv1.git
 cd finderv1
