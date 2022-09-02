@@ -13,7 +13,7 @@
 
 ---
 - Windows
-- Linuw
+- Linux
 - Termux (coming soon)
 
 ### Require
