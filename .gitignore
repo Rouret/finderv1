@@ -2,6 +2,7 @@ vendor/*
 output/*
 *.iml
 .idea
+config.json
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml
