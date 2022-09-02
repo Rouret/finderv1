@@ -9,6 +9,7 @@ output/*
 .idea/**/dictionaries
 .idea/**/shelf
 
+src/__pycache__/
 # AWS User-specific
 .idea/**/aws.xml
 

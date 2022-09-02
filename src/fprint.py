@@ -12,19 +12,24 @@ def has_colours(stream):
         import curses
         curses.setupterm()
         return curses.tigetnum("colors") > 2
-    except:
+    except Exception:
         return False
 
-def fprint(text, color=WHITE):
+
+def fprint(*args):
     if has_colours:
-        seq = "\x1b[1;%dm" % (30 + color) + text + "\x1b[0m\n"
-        sys.stdout.write(seq)
+        seq = ""
+        for (text, color) in args:
+            seq += "\x1b[1;%dm" % (30 + color) + text + "\x1b[0m"
+        sys.stdout.write(seq + "\n")
     else:
+        text = ""
+        for (text, color) in args:
+            text += text
         sys.stdout.write(text)
 
-def fclear():
-    #exec cls for window and clear for linux
-    os.system('cls' if os.name == 'nt' else 'clear')
-    return fprint(logo.ascii_logo,WHITE)
-    
 
+def fclear():
+    os.system('cls' if os.name == 'nt' else 'clear')
+    fprint((logo.ascii_logo, WHITE))
+    fprint(("Version: ", GREEN), ("V0.0.1", YELLOW),(" We will find u O_o", WHITE))

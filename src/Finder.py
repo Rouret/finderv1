@@ -7,14 +7,16 @@ import subprocess
 import os
 from datetime import datetime
 import requests
-import aiohttp
+
 requests.packages.urllib3.disable_warnings()
+
 
 class Finder:
     def __init__(self) -> None:
         self.name = "Finder"
-        self.prompt_sign = ">>> "
-        self.prompt = self.name + self.prompt_sign 
+        self.prompt_sign = "> "
+        self.prompt = ""
+        self.__set_prompt()
         self.commands = {
             "help": {
                 "description": "Display this help",
@@ -36,11 +38,11 @@ class Finder:
                 "description": "Update Finder",
                 "exec": self.update
             },
-            "clear" :{
+            "clear": {
                 "description": "Clear the screen",
                 "exec": fp.fclear
             },
-             "quit": {
+            "quit": {
                 "description": "Quit Finder",
                 "exec": self._quit
             },
@@ -54,90 +56,82 @@ class Finder:
 
         self.python_exe = sys.executable
         self.test()
-        
-    def start(self):
-        fp.fprint("Finder starter is starting ...", fp.YELLOW)
-        #nexfil
-        self.__install_by_pip("nexfil","https://github.com/thewhiteh4t/nexfil")
 
-        #FinalRecon
+    def start(self):
+        fp.fprint(("Finder starter is starting ...", fp.YELLOW))
+        # nexfil
+        self.__install_by_pip("nexfil", "https://github.com/thewhiteh4t/nexfil")
+
+        # FinalRecon
         if os.name == "nt":
-            fp.fprint("FinalRecon is not supported on Windows", fp.RED)
+            fp.fprint(("FinalRecon is not supported on Windows", fp.RED))
         else:
-            self.__install_by_pip("FinalRecon","https://github.com/thewhiteh4t/FinalRecon")
-        #END
-        fp.fprint("\nFinder is ready to find u O_o\n", fp.YELLOW)
+            self.__install_by_pip("FinalRecon", "https://github.com/thewhiteh4t/FinalRecon")
+        # END
+        fp.fprint(("\nFinder is ready to find u O_o\n", fp.YELLOW))
 
     def update(self):
-        fp.fprint("Updating ...", fp.YELLOW)
-        subprocess.run(["git", "pull"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        fp.fprint(("Updating ...", fp.YELLOW))
+        subprocess.run(["git", "pull"], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         self.__pip_install("requirements.txt")
-        fp.fprint("Update DONE:'"+self.python_exe +" " + os.path.abspath(__file__), fp.GREEN)
+        fp.fprint((f'Update DONE:\'{self.python_exe} {os.path.abspath(__file__)}\'', fp.GREEN))
         self._quit()
-    
 
     def nexfil(self):
-        fp.fprint(self.commands["username"]["description"], fp.YELLOW)
+        fp.fclear()
+        fp.fprint((self.commands["username"]["description"], fp.YELLOW))
         options = ["username"]
-        routes = ["nexfil"]
-        self.__setPrompt(routes)
-        self.__display_options(routes,options)
-        result = self.__get_multiple_options(routes,options)
+        lib_name = "nexfil"
+        self.__display_options(lib_name, options)
+        result = self.__get_multiple_options(lib_name, options)
         if not result: return
         username = result["username"]
-        routes.append(username)
-        self.__setPrompt(routes)
-        nexfill_folder = self.vendor_folder+"/nexfil"
-        subprocess.run([self.python_exe, "nexfil.py" , "-u", username], cwd=os.path.abspath(nexfill_folder))
-        fp.fprint("username DONE for "+username + ", thanks to thewhiteh4t/nexfil", fp.GREEN)
-        fp.fprint("Github: https://github.com/thewhiteh4t/nexfil\n", fp.GREEN)
-        self.__setPrompt()
-        
+        nexfill_folder = self.vendor_folder + "/nexfil"
+        subprocess.run([self.python_exe, "nexfil.py", "-u", username], cwd=os.path.abspath(nexfill_folder))
+        fp.fprint(("username DONE for " + username + ", thanks to thewhiteh4t/nexfil", fp.GREEN))
+        fp.fprint(("Github: https://github.com/thewhiteh4t/nexfil\n", fp.GREEN))
+        self.__set_prompt()
+
     def finalrecon(self):
         if os.name == "nt":
-            fp.fprint("FinalRecon is not supported on Windows", fp.RED)
+            fp.fprint(("FinalRecon is not supported on Windows", fp.RED))
             return
-        fp.fprint(self.commands["url"]["description"], fp.YELLOW)
+        fp.fclear()
+        fp.fprint((self.commands["url"]["description"], fp.YELLOW))
         options = ["url"]
-        routes = ["FinalRecon"]
-        self.__setPrompt(routes)
-        self.__display_options(routes,options)
-        result = self.__get_multiple_options(routes,options)
+        lib_name = "FinalRecon"
+        self.__display_options(lib_name, options)
+        result = self.__get_multiple_options(lib_name, options)
         if not result: return
         url = result["url"]
-        routes.append(url)
-        self.__setPrompt(routes)
-        finalrecon_folder = self.vendor_folder+"/FinalRecon"
-        subprocess.run([self.python_exe, "finalrecon.py" , "--full", url], cwd=os.path.abspath(finalrecon_folder))
-        fp.fprint("wb_username DONE for "+url + ", thanks to thewhiteh4t/FinalRecon", fp.GREEN)
-        fp.fprint("Github: https://github.com/thewhiteh4t/FinalRecon\n", fp.GREEN)
-        self.__setPrompt()
-        
+        finalrecon_folder = self.vendor_folder + "/FinalRecon"
+        subprocess.run([self.python_exe, "finalrecon.py", "--full", url], cwd=os.path.abspath(finalrecon_folder))
+        fp.fprint(("wb_username DONE for " + url + ", thanks to thewhiteh4t/FinalRecon", fp.GREEN))
+        fp.fprint(("Github: https://github.com/thewhiteh4t/FinalRecon\n", fp.GREEN))
+        self.__set_prompt()
+
     def fsearch(self):
-        fp.fprint(self.commands["fsearch"]["description"], fp.YELLOW)
-        options = ["firstname","lastname"]
-        routes = ["fsearch"]
-        self.__setPrompt(routes)
-        self.__display_options(routes,options)
-        result = self.__get_multiple_options(routes,options)
+        fp.fclear()
+        fp.fprint((self.commands["fsearch"]["description"], fp.YELLOW))
+        options = ["firstname", "lastname"]
+        lib_name = "fsearch"
+        self.__display_options(lib_name, options)
+        result = self.__get_multiple_options(lib_name, options)
         if not result: return
         firstname = result["firstname"]
         lastname = result["lastname"]
-        routes.append(firstname+"_"+lastname)
-        self.__setPrompt(routes)
-        fp.fprint("Want to save the generated list ? (y/n)", fp.YELLOW)
-        temp_input = input(self.prompt)
-        firstname = result["firstname"]
-        lastname = result["lastname"]
-        while temp_input not in ["y","n"]:
-            fp.fprint("Please enter y or n", fp.RED)
+        temp_input = ""
+        expected = ["y", "n"]
+        fp.fprint(("Want to save the generated list ? (y/n)", fp.YELLOW))
+        while temp_input not in expected:
+            self.__set_prompt(lib_name, f'Enter {"/".join(expected)}')
             temp_input = input(self.prompt)
-        possibilities = UsernameGenerator(firstname,lastname).possibilities
-        fp.fprint("Generated "+str(len(possibilities))+" usernames", fp.GREEN)
+        possibilities = UsernameGenerator(firstname, lastname).possibilities
+        fp.fprint(("Generated " + str(len(possibilities)) + " usernames", fp.GREEN))
         if temp_input == "y":
-            filename = firstname+"_"+lastname+"_"+str(datetime.timestamp(datetime.now()))
-            self.__export_list_to_output(possibilities, filename,lambda x: x)
-        
+            filename = firstname + "_" + lastname + "_" + str(datetime.timestamp(datetime.now()))
+            self.__export_list_to_output(possibilities, filename, lambda x: x)
+
         found = []
         headers = {
             'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:88.0) Gecko/20100101 Firefox/88.0',
@@ -147,88 +141,83 @@ class Finder:
         for username in possibilities:
             try:
                 url = f'https://www.instagram.com/{username}/?__a=1&__d=dis'
-                response = requests.get(url,headers=headers ,timeout=10)
+                response = requests.get(url, headers=headers, timeout=10)
                 if response.status_code == 200:
                     print(response.text)
-                    fp.fprint("[+]: "+username, fp.GREEN)
+                    fp.fprint(("[+]: " + username, fp.GREEN))
                     found.append({
                         "username": username,
                         "url": url,
                     })
-            except:
+            except Exception:
                 pass
 
-            
-        filename = "result_"+firstname+"_"+lastname+"_"+str(datetime.timestamp(datetime.now()))
-        self.__export_list_to_output(found, filename, lambda x: x["username"]+" : "+x["url"])
-        self.__setPrompt()
-        
+        filename = "result_" + firstname + "_" + lastname + "_" + str(datetime.timestamp(datetime.now()))
+        self.__export_list_to_output(found, filename, lambda x: x["username"] + " : " + x["url"])
+        self.__set_prompt()
 
     def help(self):
-        for cmdName in self.commands:
-            fp.fprint( cmdName + ": " + self.commands[cmdName]["description"], fp.GREEN)
+        for cmd_name in self.commands:
+            fp.fprint(("[-] ", fp.GREEN), (cmd_name + ":", fp.YELLOW),
+                      (self.commands[cmd_name]["description"], fp.GREEN))
 
-
-    def __export_list_to_output(self, liste, __filename,func):
-        filename = self.output_folder+"/"+__filename+".txt"
+    def __export_list_to_output(self, liste, __filename, func):
+        filename = self.output_folder + "/" + __filename + ".txt"
         with open(filename, "w") as f:
             for item in liste:
                 if item == liste[-1]:
                     f.write(func(item))
                 else:
-                    f.write(func(item)+"\n")
-        fp.fprint("Saved in "+os.path.abspath(filename), fp.GREEN)
+                    f.write(func(item) + "\n")
+        fp.fprint(("Saved in " + os.path.abspath(filename), fp.GREEN))
 
-
-    def __setPrompt(self,routes = ""):
-        self.prompt = self.name + "/" + "/".join(routes) + ">>> "
-
-    def __clone_or_update(self,lib_name, url, folder):
-        if(os.path.exists(folder)):
-            subprocess.run(["git", "pull"],cwd=folder,stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT) 
-            fp.fprint(lib_name+" is already cloned so Finder update it", fp.GREEN)
+    def __set_prompt(self, current_lib=None, text=""):
+        if current_lib is None:
+            self.prompt = f'[{self.name}] >>> '
         else:
-            subprocess.run(["git", "clone", url, folder],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+            self.prompt = f'[{self.name}]-[{current_lib}] {text} >>> '
+
+    def __clone_or_update(self, lib_name, url, folder):
+        if (os.path.exists(folder)):
+            subprocess.run(["git", "pull"], cwd=folder, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            fp.fprint((lib_name + " is already cloned so Finder updates it", fp.GREEN))
+        else:
+            subprocess.run(["git", "clone", url, folder], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     def __pip_install(self, requirement_file):
-       subprocess.run(["pip", "install", "-r", requirement_file], stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        subprocess.run(["pip", "install", "-r", requirement_file], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
-    def __display_options(self,routes,options):
-        if len(routes) > 0:
-            fp.fprint("\nOptions for " + routes[-1] + " :", fp.YELLOW)
-        else: 
-            fp.fprint("\nOptions:", fp.YELLOW)
-        fp.fprint(",".join(options)+"\n", fp.YELLOW)
+    def __display_options(self, lib_name, options):
+        fp.fprint(("Options for " + lib_name + " :", fp.YELLOW))
+        fp.fprint((",".join(options) + "\n", fp.YELLOW))
 
-    def __get_multiple_options(self,routes,options):
+    def __get_multiple_options(self, lib_name, options):
         result = {}
         for option in options:
-            temp_routes = routes[:]
-            temp_routes.append(option)
-            self.__setPrompt(temp_routes)
-            temp_input = "" 
-            while(len(temp_input) == 0):
+            self.__set_prompt(lib_name, f'Enter {option}')
+            temp_input = ""
+            while len(temp_input) == 0:
                 temp_input = input(self.prompt)
-                if temp_input == "q": 
-                    fp.fprint("Cancel wb_username", fp.RED)
-                    self.__setPrompt()
+                if temp_input == "q":
+                    fp.fprint(("Cancel wb_username", fp.RED))
+                    self.__set_prompt()
                     return None
                 if len(temp_input) == 0:
-                    fp.fprint("Please provide a "+ option +" value !", fp.RED)
+                    fp.fprint(("Please provide a " + option + " value !", fp.RED))
             result[option] = temp_input
-            self.__setPrompt(routes)
+            self.__set_prompt(lib_name, "")
         return result
-    
+
     def __install_by_pip(self, lib_name, github_url):
-        fp.fprint(lib_name + " " + github_url, fp.MAGENTA)
-        self.__clone_or_update(lib_name, github_url+".git", self.vendor_folder+"/"+lib_name)
-        fp.fprint("Installing dependencies of "+lib_name+" ...", fp.MAGENTA)
-        self.__pip_install(self.vendor_folder+"/"+lib_name+"/requirements.txt")
-        fp.fprint(lib_name+" DONE", fp.GREEN)
+        fp.fprint((lib_name + " " + github_url, fp.MAGENTA))
+        self.__clone_or_update(lib_name, github_url + ".git", self.vendor_folder + "/" + lib_name)
+        fp.fprint(("Installing dependencies of " + lib_name + " ...", fp.MAGENTA))
+        self.__pip_install(self.vendor_folder + "/" + lib_name + "/requirements.txt")
+        fp.fprint((lib_name + " DONE", fp.GREEN))
 
     def test(self):
         return
-        
+
     def _quit(self):
-        fp.fprint("We will find u anyway à_à", fp.RED)
+        fp.fprint(("We will find u anyway à_à", fp.RED))
         sys.exit(0)

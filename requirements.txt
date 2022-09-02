@@ -1,9 +1,14 @@
-colorama==0.4.5
-glitch-this==1.0.2
-numpy==1.23.1
-Pillow==9.2.0
-pixelsort==1.0.1
-gnureadline>=8.0.0; platform_system != "Windows"
-pyreadline==2.1; platform_system == "Windows"
-termcolor==1.1.0
-aiohttp
+asyncio~=3.4.3
+requests~=2.28.1
+aiohttp~=3.8.1
+tldextract~=3.3.1
+packaging~=21.3
+colorama~=0.4.5
+pandas~=1.4.4
+torrequest~=0.1.0
+dnslib~=0.9.20
+ipwhois~=1.2.0
+bs4~=0.0.1
+beautifulsoup4~=4.11.1
+lxml~=4.9.1
+pyreadline~=2.1
