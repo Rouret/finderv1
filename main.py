@@ -1,7 +1,6 @@
 
 import sys
 import signal
-import argparse
 from src.Finder import Finder
 from src import fprint as fp
 import collections 
@@ -26,37 +25,27 @@ def _quit():
 
 finder = Finder()
 
-#Commands frim commands folder
-commands = {
-	"help": finder.help,
-	"exit": _quit,
-	"quit": _quit,
-	"q": _quit,
-}
-
-
 def completer(text, state):
-    options = [i for i in commands if i.startswith(text)]
+    options = [i for i in finder.commands if i.startswith(text)]
     if state < len(options):
         return options[state]
     else:
         return None
-#Parser config
-parser = argparse.ArgumentParser(description='We will find u O_o')
-args = parser.parse_args()
+
+signal.signal(signal.SIGINT, _quit)
+if is_windows:
+	pyreadline.Readline().parse_and_bind("tab: complete")
+	pyreadline.Readline().set_completer(completer)
+else:
+	gnureadline.parse_and_bind("tab: complete")
+	gnureadline.set_completer(completer)
 
 fp.fclear()
-while(True):
-	signal.signal(signal.SIGINT, _quit)
-	if is_windows:
-		pyreadline.Readline().parse_and_bind("tab: complete")
-		pyreadline.Readline().set_completer(completer)
-	else:
-		gnureadline.parse_and_bind("tab: complete")
-		gnureadline.set_completer(completer)
 
-	cmd = input(": ")
-	_cmd = commands.get(cmd)
+finder.start()
+while(True):
+	cmd = input(finder.prompt)
+	_cmd = finder.commands.get(cmd)
 	if(_cmd):
 		_cmd()
 	else:

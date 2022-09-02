@@ -17,7 +17,7 @@ def has_colours(stream):
 
 def fprint(text, color=WHITE):
     if has_colours:
-        seq = "\x1b[1;%dm" % (30 + color) + text + "\x1b[0m"
+        seq = "\x1b[1;%dm" % (30 + color) + text + "\x1b[0m\n"
         sys.stdout.write(seq)
     else:
         sys.stdout.write(text)
