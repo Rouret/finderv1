@@ -1,7 +1,14 @@
+import asyncio
+from urllib import request
 from src import fprint as fp
+from src.UsernameGenerator import UsernameGenerator
 import sys
 import subprocess
 import os
+from datetime import datetime
+import requests
+import aiohttp
+requests.packages.urllib3.disable_warnings()
 
 class Finder:
     def __init__(self) -> None:
@@ -9,21 +16,46 @@ class Finder:
         self.prompt_sign = ">>> "
         self.prompt = self.name + self.prompt_sign 
         self.commands = {
-            "help": self.help,
-            "quit": self._quit,
-            "reload_dependencies": self.start,
-            "username": self.nexfil,
-            "url": self.finalrecon,
-            "update": self.update,
-            "clear" : fp.fclear
+            "help": {
+                "description": "Display this help",
+                "exec": self.help
+            },
+            "username": {
+                "description": "Find username on over 350 websites (by nexfil)",
+                "exec": self.nexfil
+            },
+            "url": {
+                "description": "Find information about a website (by FinalRecon)",
+                "exec": self.finalrecon
+            },
+            "fsearch": {
+                "description": "Find user ig account by firstname/lastname (by Finder)",
+                "exec": self.fsearch
+            },
+            "update": {
+                "description": "Update Finder",
+                "exec": self.update
+            },
+            "clear" :{
+                "description": "Clear the screen",
+                "exec": fp.fclear
+            },
+             "quit": {
+                "description": "Quit Finder",
+                "exec": self._quit
+            },
+            "reload_dependencies": {
+                "description": "Reload dependencies",
+                "exec": self.start
+            },
         }
         self.vendor_folder = "vendor"
         self.output_folder = "output"
 
         self.python_exe = sys.executable
+        self.test()
         
     def start(self):
-        self.test()
         fp.fprint("Finder starter is starting ...", fp.YELLOW)
         #nexfil
         self.__install_by_pip("nexfil","https://github.com/thewhiteh4t/nexfil")
@@ -44,15 +76,8 @@ class Finder:
         self._quit()
     
 
-    def __install_by_pip(self, lib_name, github_url):
-        fp.fprint(lib_name + " " + github_url, fp.MAGENTA)
-        self.__clone_or_update(lib_name, github_url+".git", self.vendor_folder+"/"+lib_name)
-        fp.fprint("Installing dependencies of "+lib_name+" ...", fp.MAGENTA)
-        self.__pip_install(self.vendor_folder+"/"+lib_name+"/requirements.txt")
-        fp.fprint(lib_name+" DONE", fp.GREEN)
-
     def nexfil(self):
-        fp.fprint("The provided usernames are checked on over 350 websites within few seconds. (nexfil)", fp.YELLOW)
+        fp.fprint(self.commands["username"]["description"], fp.YELLOW)
         options = ["username"]
         routes = ["nexfil"]
         self.__setPrompt(routes)
@@ -64,7 +89,7 @@ class Finder:
         self.__setPrompt(routes)
         nexfill_folder = self.vendor_folder+"/nexfil"
         subprocess.run([self.python_exe, "nexfil.py" , "-u", username], cwd=os.path.abspath(nexfill_folder))
-        fp.fprint("wb_username DONE for "+username + ", thanks to thewhiteh4t/nexfil", fp.GREEN)
+        fp.fprint("username DONE for "+username + ", thanks to thewhiteh4t/nexfil", fp.GREEN)
         fp.fprint("Github: https://github.com/thewhiteh4t/nexfil\n", fp.GREEN)
         self.__setPrompt()
         
@@ -72,7 +97,7 @@ class Finder:
         if os.name == "nt":
             fp.fprint("FinalRecon is not supported on Windows", fp.RED)
             return
-        fp.fprint("Goal of FinalRecon is to provide an overview of the target in a short amount of time while maintaining the accuracy of results. (FinalRecon)", fp.YELLOW)
+        fp.fprint(self.commands["url"]["description"], fp.YELLOW)
         options = ["url"]
         routes = ["FinalRecon"]
         self.__setPrompt(routes)
@@ -88,9 +113,72 @@ class Finder:
         fp.fprint("Github: https://github.com/thewhiteh4t/FinalRecon\n", fp.GREEN)
         self.__setPrompt()
         
+    def fsearch(self):
+        fp.fprint(self.commands["fsearch"]["description"], fp.YELLOW)
+        options = ["firstname","lastname"]
+        routes = ["fsearch"]
+        self.__setPrompt(routes)
+        self.__display_options(routes,options)
+        result = self.__get_multiple_options(routes,options)
+        if not result: return
+        firstname = result["firstname"]
+        lastname = result["lastname"]
+        routes.append(firstname+"_"+lastname)
+        self.__setPrompt(routes)
+        fp.fprint("Want to save the generated list ? (y/n)", fp.YELLOW)
+        temp_input = input(self.prompt)
+        firstname = result["firstname"]
+        lastname = result["lastname"]
+        while temp_input not in ["y","n"]:
+            fp.fprint("Please enter y or n", fp.RED)
+            temp_input = input(self.prompt)
+        possibilities = UsernameGenerator(firstname,lastname).possibilities
+        fp.fprint("Generated "+str(len(possibilities))+" usernames", fp.GREEN)
+        if temp_input == "y":
+            filename = firstname+"_"+lastname+"_"+str(datetime.timestamp(datetime.now()))
+            self.__export_list_to_output(possibilities, filename,lambda x: x)
+        
+        found = []
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:88.0) Gecko/20100101 Firefox/88.0',
+            'sessionid': '1983453404%3Ahg8m1eRoPOrcnQ%3A3%3AAYfqpkt8ArvzWEHejfout5a2PLZpqccZxDUPxsPdyw'
+        }
+
+        for username in possibilities:
+            try:
+                url = f'https://www.instagram.com/{username}/?__a=1&__d=dis'
+                response = requests.get(url,headers=headers ,timeout=10)
+                if response.status_code == 200:
+                    print(response.text)
+                    fp.fprint("[+]: "+username, fp.GREEN)
+                    found.append({
+                        "username": username,
+                        "url": url,
+                    })
+            except:
+                pass
+
+            
+        filename = "result_"+firstname+"_"+lastname+"_"+str(datetime.timestamp(datetime.now()))
+        self.__export_list_to_output(found, filename, lambda x: x["username"]+" : "+x["url"])
+        self.__setPrompt()
+        
+
     def help(self):
-        for key in self.commands:
-            fp.fprint( "- " + key, fp.GREEN)
+        for cmdName in self.commands:
+            fp.fprint( cmdName + ": " + self.commands[cmdName]["description"], fp.GREEN)
+
+
+    def __export_list_to_output(self, liste, __filename,func):
+        filename = self.output_folder+"/"+__filename+".txt"
+        with open(filename, "w") as f:
+            for item in liste:
+                if item == liste[-1]:
+                    f.write(func(item))
+                else:
+                    f.write(func(item)+"\n")
+        fp.fprint("Saved in "+os.path.abspath(filename), fp.GREEN)
+
 
     def __setPrompt(self,routes = ""):
         self.prompt = self.name + "/" + "/".join(routes) + ">>> "
@@ -115,10 +203,10 @@ class Finder:
     def __get_multiple_options(self,routes,options):
         result = {}
         for option in options:
-            temp_routes = routes
+            temp_routes = routes[:]
             temp_routes.append(option)
             self.__setPrompt(temp_routes)
-            temp_input = ""
+            temp_input = "" 
             while(len(temp_input) == 0):
                 temp_input = input(self.prompt)
                 if temp_input == "q": 
@@ -128,10 +216,17 @@ class Finder:
                 if len(temp_input) == 0:
                     fp.fprint("Please provide a "+ option +" value !", fp.RED)
             result[option] = temp_input
+            self.__setPrompt(routes)
         return result
     
+    def __install_by_pip(self, lib_name, github_url):
+        fp.fprint(lib_name + " " + github_url, fp.MAGENTA)
+        self.__clone_or_update(lib_name, github_url+".git", self.vendor_folder+"/"+lib_name)
+        fp.fprint("Installing dependencies of "+lib_name+" ...", fp.MAGENTA)
+        self.__pip_install(self.vendor_folder+"/"+lib_name+"/requirements.txt")
+        fp.fprint(lib_name+" DONE", fp.GREEN)
+
     def test(self):
-        print(self.python_exe)
         return
         
     def _quit(self):

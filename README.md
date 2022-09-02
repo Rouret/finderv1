@@ -14,6 +14,7 @@ Install before:
 
 - libpython3-dev
 - python3-dev
+- tor
 
 ## Windows
 

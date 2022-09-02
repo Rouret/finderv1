@@ -16,9 +16,6 @@ except:
     is_windows = True
     import pyreadline
 
-print("IS WINDOWS: ", is_windows)
-
-
 def _quit():
 	fp.fprint("We will find u anyway à_à", fp.RED)
 	sys.exit(0)
@@ -42,12 +39,12 @@ else:
 
 fp.fclear()
 
-finder.start()
+#finder.start()
 while(True):
 	cmd = input(finder.prompt)
 	_cmd = finder.commands.get(cmd)
 	if(_cmd):
-		_cmd()
+		_cmd["exec"]()
 	else:
 		fp.fprint("Command not found", fp.RED)
 
