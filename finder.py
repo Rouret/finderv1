@@ -1,3 +1,4 @@
+import json
 import sys
 import signal
 from src.Finder import Finder
@@ -7,7 +8,7 @@ import collections.abc
 collections.Callable = collections.abc.Callable
 
 is_windows = False
-
+config_file = "config.json"
 try:
     import gnureadline
 except ImportError:
@@ -20,8 +21,8 @@ def _quit():
     sys.exit(0)
 
 
-finder = Finder()
-
+config = json.load(open(config_file))
+finder = Finder(config)
 
 def completer(text, state):
     options = [i for i in finder.commands if i.startswith(text)]
@@ -39,7 +40,7 @@ else:
     gnureadline.parse_and_bind("tab: complete")
     gnureadline.set_completer(completer)
 
-fp.fclear()
+fp.fclear(config["version"])
 # finder.start()
 while True:
     cmd = input(finder.prompt)
