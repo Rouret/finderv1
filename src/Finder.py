@@ -7,6 +7,7 @@ import subprocess
 import os
 from datetime import datetime
 import requests
+import codecs
 
 requests.packages.urllib3.disable_warnings()
 
@@ -34,6 +35,10 @@ class Finder:
             "fsearch": {
                 "description": "Find user ig account by firstname/lastname (by Finder)",
                 "exec": self.fsearch
+            },
+            "fig":{
+                "description": "Find location/hobbies/friends of an ig account (by Finder)",
+                "exec": self.finder_ig
             },
             "update": {
                 "description": "Update Finder",
@@ -111,10 +116,97 @@ class Finder:
         fp.fprint(("Github: https://github.com/thewhiteh4t/FinalRecon\n", fp.GREEN))
         self.__set_prompt()
 
-    def fsearch(self):
-        if len(self.config["INSTAGRAM_SESSION_ID"]) == 0:
-            fp.fprint(("Instagram session id is not set in config.json", fp.RED))
+    def finder_ig(self):
+        if not self.__check_ig_session_id():
             return
+        fp.fclear(self.config["version"])
+        fp.fprint((self.commands["fig"]["description"], fp.YELLOW))
+        options = ["username"]
+        lib_name = "fig"
+        self.__display_options(lib_name, options)
+        result = self.__get_multiple_options(lib_name, options)
+        if not result: return
+        username = result["username"]
+
+       
+        response = self.__get_instagram_graph(username)
+        res_json = response.json()
+
+        if "data" not in res_json:
+            fp.fprint(("Error account exist ?", fp.RED))
+            return
+
+        SEO = ", ".join(map(lambda t: t[0], res_json["seo_category_infos"]))
+        BIO = res_json["graphql"]["user"]["biography"]
+        media = res_json["graphql"]["user"]["edge_owner_to_timeline_media"]["edges"]
+
+        fp.fprint((username, fp.YELLOW),(" profile is loaded", fp.GREEN))
+        #SEO categories
+        fp.fprint(("SEO: ", fp.YELLOW),(SEO, fp.GREEN))
+        fp.fprint(("BIO: ", fp.YELLOW),(BIO, fp.GREEN))
+
+       
+        fp.fprint(("Nb of media: ", fp.YELLOW),(str(len(media)), fp.GREEN))
+        #Check if there are some mention in the description
+        users = []
+
+        def add_user(username):
+            i = 0
+            isFind = False
+            while i < len(users) and not isFind:
+                if users[i]["username"] == username:
+                    isFind = True
+                i += 1
+            if not isFind:
+                users.append({"username": username, "nb": 1})
+            else:
+                users[i-1]["nb"] += 1
+        for m in media:
+            if m["node"]["edge_media_to_caption"]["edges"]:
+                caption = m["node"]["edge_media_to_caption"]["edges"][0]["node"]["text"]
+
+                caption_splited = caption.split("@")
+
+                for i in range(1,len(caption_splited)):
+                    mention = caption_splited[i].split(" ")[0]
+                    add_user(mention)
+
+            if m["node"]["edge_media_to_tagged_user"]["edges"]:
+                for tag in m["node"]["edge_media_to_tagged_user"]["edges"]:
+                    add_user(tag["node"]["user"]["username"])
+            
+        #sort users by nb
+        users.sort(key=lambda u: u["nb"], reverse=True)
+        
+        fp.fprint(("Mentioned users: ", fp.YELLOW))
+        for user in users:
+            fp.fprint(("+ ",fp.GREEN),(user["username"], fp.YELLOW),(" : ", fp.YELLOW),(str(user["nb"]), fp.GREEN))
+
+
+        #write result on a file
+        filename = self.output_folder + "/result_fig_" + str(datetime.timestamp(datetime.now())) + "_" + username + ".txt"
+
+        file = codecs.open(filename, "w", "utf-8")
+
+        file_content = "SEO: " + SEO + "\n"
+        file_content += "BIO: " + BIO + "\n"
+        file_content +="Nb of media: " + str(len(media)) + "\n"
+        file_content += "Mentioned users: \n"
+        for user in users:
+            file_content += "+ " + user["username"] + " : " + str(user["nb"]) + "\n"
+
+        file.write(file_content)
+        file.close()
+        
+        fp.fprint(("Result saved in ", fp.YELLOW),(filename, fp.GREEN))
+    
+        self.__set_prompt()
+
+
+    def fsearch(self):
+        if not self.__check_ig_session_id():
+            return
+
         fp.fclear(self.config["version"])
         fp.fprint((self.commands["fsearch"]["description"], fp.YELLOW))
         options = ["firstname", "lastname"]
@@ -138,19 +230,11 @@ class Finder:
             self.__export_list_to_output(possibilities, filename, lambda x: x)
 
         found = []
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:88.0) Gecko/20100101 Firefox/88.0',
-            'Accept': '*/*'
-        }
-
-        cookies = {
-            'sessionid': self.config["INSTAGRAM_SESSION_ID"],
-        }
+       
         fp.fprint(("[+] Let's find ig accounts now ", fp.GREEN), ("O", fp.RED), ("_", fp.BLACK), ("O", fp.RED))
         for username in possibilities:
             try:
-                url = f'https://www.instagram.com/{username}/?__a=1&__d=dis'
-                response = requests.get(url, headers=headers, cookies=cookies, timeout=10)
+                response = self.__get_instagram_graph(username)
                 if response.status_code == 200:
                     is_private = response.json()["graphql"]["user"]["is_private"]
                     if is_private:
@@ -176,6 +260,23 @@ class Finder:
         for cmd_name in self.commands:
             fp.fprint(("[-] ", fp.GREEN), (cmd_name + ":", fp.YELLOW),
                       (self.commands[cmd_name]["description"], fp.GREEN))
+
+    def __check_ig_session_id(self):
+        if len(self.config["INSTAGRAM_SESSION_ID"]) == 0:
+            fp.fprint(("Instagram session id is not set in config.json, edit and reload FINDER", fp.RED))
+            return False
+        return True
+
+    def __get_instagram_graph(self,username):
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:88.0) Gecko/20100101 Firefox/88.0',
+            'Accept': '*/*'
+        }
+        cookies = {
+            'sessionid': self.config["INSTAGRAM_SESSION_ID"],
+        }
+        url = f'https://www.instagram.com/{username}/?__a=1&__d=dis'
+        return requests.get(url, headers=headers, cookies=cookies, timeout=10)
 
     def __export_list_to_output(self, liste, __filename, func):
         filename = self.output_folder + "/" + __filename + ".txt"

@@ -41,7 +41,7 @@ else:
     gnureadline.set_completer(completer)
 
 fp.fclear(config["version"])
-# finder.start()
+finder.start()
 while True:
     cmd = input(finder.prompt)
     _cmd = finder.commands.get(cmd)
