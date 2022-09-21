@@ -16,11 +16,13 @@
 - Linux
 - Termux (coming soon)
 
-### Dependencies
+### Features
 
 ---
 - [nexfil](https://github.com/thewhiteh4t/nexfil)
 - [FinalRecon](https://github.com/thewhiteh4t/FinalRecon)
+- Fsearch try to find ig accounts with firstname/lastname combo
+- Fig try to get global information of IG profiles (beta)
 
 ## Require
 
@@ -28,13 +30,17 @@
 - python3
 - a target lol
 
+## Configuration
+
+Get ur sessionId from ig for fsearch and fig and put it in config.json
+[To get ur session id](https://www.youtube.com/watch?v=GLt675WhRHw)
+
 ### Linux
 
 Install before:
 
 - libpython3-dev
 - python3-dev
-- tor
 
 ### Windows
 
